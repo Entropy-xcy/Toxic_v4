@@ -30,6 +30,13 @@ fn main() {
                           Ok(())
     });
 
+    shell.new_command("step", "Execute by One step", 0,
+                      |io, toxic, s| {
+                          // writeln!(io, "Executing {}", s[0]);
+                          let res = toxic.step();
+                          Ok(())
+                      });
+
     shell.new_command("stack", "Display stack content", 0,
                       |io, toxic, s| {
                           writeln!(io, "{}", toxic.stack_to_str());
@@ -39,7 +46,7 @@ fn main() {
 
     shell.new_command("context", "Display Program Context", 0,
                       |io, toxic, s| {
-                          writeln!(io, "{}", toxic.context_to_str(toxic.pc-2, toxic.pc + 10));
+                          writeln!(io, "{}", toxic.context_to_str(toxic.pc-2, toxic.pc + 5));
                           // v.push(s[0].to_string());
                           Ok(())
                       });
@@ -48,6 +55,18 @@ fn main() {
                       |io, toxic, s| {
                           writeln!(io, "{}", toxic.reg_to_str());
                           // v.push(s[0].to_string());
+                          Ok(())
+                      });
+
+    shell.new_command("load", "Load from Assembly file", 1,
+                      |io, toxic, s| {
+                          let res = toxic.imem.load_from_source(String::from(s[0]),
+                                                                toxic.pc);
+                          match res {
+                              Ok(_) => (),
+                              Err(e) => {writeln!(io, "Error: {}", e); ()}
+                          }
+
                           Ok(())
                       });
 

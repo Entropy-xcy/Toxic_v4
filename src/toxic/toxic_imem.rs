@@ -44,7 +44,7 @@ impl ToxicInstMem {
         }
     }
 
-    pub fn load_from_source(&mut self, filename: String) {
+    pub fn init_from_source(&mut self, filename: String) {
         let contents = fs::read_to_string(filename)
             .expect("Cannot Read Source file");
         let mut prog: Vec<toxic_inst::ToxicInst> = Vec::new();
@@ -60,6 +60,27 @@ impl ToxicInstMem {
         let prog_raw: Vec<u8> = prog.iter().map(|x| x.to_bits()).collect();
 
         self.load(self.main_address(), prog_raw);
+    }
+
+    pub fn load_from_source(&mut self, filename: String, addr: u32) -> Result<(), String>{
+        let contents = match fs::read_to_string(&filename){
+            Ok(r) => r,
+            Err(_) => return Err(String::from(format!("Cannot Read Source file {}", filename)))
+        };
+        let mut prog: Vec<toxic_inst::ToxicInst> = Vec::new();
+        for line in contents.split("\n") {
+            let inst_str = line.replace(" ", "");
+            // println!("{}", inst_str);
+            prog.push(match toxic_inst::ToxicInst::from_str(inst_str) {
+                Ok(inst) => inst,
+                Err(e) => return Err(e)
+            });
+        }
+
+        let prog_raw: Vec<u8> = prog.iter().map(|x| x.to_bits()).collect();
+
+        self.load(addr, prog_raw);
+        Ok(())
     }
 
     pub fn load_from_bin(&mut self, filename: String) {

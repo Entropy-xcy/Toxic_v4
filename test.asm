@@ -1,3 +1,6 @@
 P1
 P1
 ADD
+P1
+CMP
+RS
