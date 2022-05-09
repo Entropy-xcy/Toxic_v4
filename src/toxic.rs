@@ -1,7 +1,7 @@
 pub mod toxic_imem;
 pub mod toxic_dmem;
 
-use std::fmt::{Debug, Display};
+use std::fmt::{Debug};
 use toxic_imem::*;
 use toxic_imem::toxic_inst::*;
 use toxic_dmem::*;
@@ -202,5 +202,28 @@ impl Toxic {
             }
             Err(e) => Err(e)
         }
+    }
+
+    pub fn mem_to_str(&self, begin_addr: u32, end_addr:u32) -> String {
+        const ELEM_PER_LINE: u32 = 8;
+        let mut ret = "Addr\t|\t".to_string();
+
+        for i in 0..ELEM_PER_LINE{
+            ret = format!("{}+{}\t\t", ret, i);
+        }
+
+        let begin_addr = (begin_addr / ELEM_PER_LINE) * ELEM_PER_LINE;
+        let end_addr = if end_addr % ELEM_PER_LINE == 0 {end_addr} else
+            {(end_addr / ELEM_PER_LINE + 1) * ELEM_PER_LINE};
+
+        for addr in begin_addr..end_addr{
+            let mark = if addr == self.pt {"*".to_string()} else {
+                if addr == self.sp {"^".to_string()}
+                else {"".to_string()}
+            };
+            ret = if addr % ELEM_PER_LINE == 0 {format!("{}\n{:#06x}\t|\t{:04b}{}", ret, addr, self.dmem.read(addr), mark)}
+            else {format!("{}\t{:04b}{}", ret, self.dmem.read(addr), mark)}
+        }
+        ret
     }
 }

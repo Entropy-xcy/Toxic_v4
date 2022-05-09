@@ -1,7 +1,3 @@
-use std::fmt;
-use std::fmt::{format, Debug, Formatter};
-
-
 pub enum ToxicInst {
     LS,
     RS,

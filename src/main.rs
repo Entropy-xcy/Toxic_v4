@@ -1,7 +1,3 @@
-use std::fmt;
-use std::fmt::{format, Debug, Formatter};
-use Toxic_v4::*;
-use Toxic_v4::toxic::toxic_imem::toxic_inst::ToxicInst;
 use Toxic_v4::toxic::Toxic;
 
 extern crate shrust;
@@ -9,15 +5,11 @@ use shrust::{Shell, ShellIO};
 use std::io::prelude::*;
 
 fn main() {
-    let mut toxic = Toxic::new(8);
+    let toxic = Toxic::new(8);
     // toxic.imem.load_from_source(String::from("test.asm"));
     // toxic.step();
     // println!("{}", toxic.stack_to_str());
     let mut shell = Shell::new(toxic);
-    shell.new_command_noargs("hello", "Say 'hello' to the world", |io, _| {
-        writeln!(io, "Hello World !!!")?;
-        Ok(())
-    });
 
     shell.new_command("exec", "Execute Command", 1,
                       |io, toxic, s| {
@@ -30,10 +22,11 @@ fn main() {
                           Ok(())
     });
 
+
     shell.new_command("step", "Execute by One step", 0,
                       |io, toxic, s| {
                           // writeln!(io, "Executing {}", s[0]);
-                          let res = toxic.step();
+                          toxic.step();
                           Ok(())
                       });
 
@@ -66,6 +59,26 @@ fn main() {
                               Ok(_) => (),
                               Err(e) => {writeln!(io, "Error: {}", e); ()}
                           }
+
+                          Ok(())
+                      });
+
+    shell.new_command("mem", "Show memory content", 2,
+                      |io, toxic, s| {
+                          let begin_str = s[0].trim_start_matches("0x");
+                          let end_str = s[1].trim_start_matches("0x");
+                          let begin_idx: u32 = match i32::from_str_radix(begin_str, 16){
+                              Ok(i) => i,
+                              Err(_) => {writeln!(io, "Please Enter a valid Hex Decimal Address"); 0}
+                          } as u32;
+
+                          let end_idx: u32 = match i32::from_str_radix(end_str, 16){
+                              Ok(i) => i,
+                              Err(_) => {writeln!(io, "Please Enter a valid Hex Decimal Address"); 0}
+                          } as u32;
+
+                          let ret = toxic.mem_to_str(begin_idx, end_idx);
+                          writeln!(io, "{}", ret);
 
                           Ok(())
                       });

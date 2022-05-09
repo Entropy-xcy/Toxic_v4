@@ -32,14 +32,14 @@ impl ToxicInstMem {
 
         let dec = toxic_inst::ToxicInst::from_bits(inst_bin);
         match dec {
-            Err(e) => std::panic!("Invalid Instruction Raw Bits: {}", inst_bin),
+            Err(_) => std::panic!("Invalid Instruction Raw Bits: {}", inst_bin),
             Ok(r) => r
         }
     }
 
     pub fn load(&mut self, position: u32, prog: Vec<u8>) {
         for i in 0..(prog.len()){
-            let mut elem = &mut self.raw[i + (position as usize)];
+            let elem = &mut self.raw[i + (position as usize)];
             *elem = prog[i];
         }
     }
@@ -83,10 +83,6 @@ impl ToxicInstMem {
         Ok(())
     }
 
-    pub fn load_from_bin(&mut self, filename: String) {
-
-    }
-
     pub fn to_str(&self, pc_start: u32, pc_end: u32) -> String {
         let mut result: String = String::from("\tAddr\t\tInst");
         for pc in pc_start..pc_end{
@@ -99,7 +95,7 @@ impl ToxicInstMem {
 
 impl std::fmt::Display for ToxicInstMem {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut printable: String = String::from("");
+        let printable: String = String::from("");
 
         write!(f, "{}", printable)
     }
