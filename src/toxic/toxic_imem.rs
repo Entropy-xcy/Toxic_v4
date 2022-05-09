@@ -67,9 +67,10 @@ impl ToxicInstMem {
     }
 
     pub fn to_str(&self, pc_start: u32, pc_end: u32) -> String {
-        let mut result: String = String::from("");
+        let mut result: String = String::from("\tAddr\t\tInst");
         for pc in pc_start..pc_end{
-            result = format!("{}\n{:#06x}\t{}", result, pc, self.decode(pc).to_str());
+            // let pc_mark = if pc == self.pc {"*"} else {""};
+            result = format!("{}\n{}\t{:#06x}\t\t{}", result, "", pc, self.decode(pc).to_str());
         }
         result
     }

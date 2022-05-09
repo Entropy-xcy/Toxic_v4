@@ -1,6 +1,5 @@
 use std::fmt;
 use std::fmt::{format, Debug, Formatter};
-use ux::*;
 
 
 pub enum ToxicInst {
@@ -116,4 +115,3 @@ impl std::fmt::Display for ToxicInst {
         write!(f, "{}", printable)
     }
 }
-
