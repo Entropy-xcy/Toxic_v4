@@ -6,7 +6,7 @@ use Toxic_v4::toxic::Toxic;
 
 fn main() {
     let mut toxic = Toxic::new(8);
-    toxic.imem.load_from_source(String::from("test.asm"));
+    toxic.imem.init_from_source(String::from("test.asm"));
     println!("{}", toxic.imem.to_str(toxic.imem.main_address(),
                                      toxic.imem.main_address() + 10));
 }

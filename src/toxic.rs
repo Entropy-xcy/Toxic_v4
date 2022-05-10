@@ -209,7 +209,7 @@ impl Toxic {
         let mut ret = "Addr\t|\t".to_string();
 
         for i in 0..ELEM_PER_LINE{
-            ret = format!("{}+{}\t\t", ret, i);
+            ret = format!("{}+{}\t", ret, i);
         }
 
         let begin_addr = (begin_addr / ELEM_PER_LINE) * ELEM_PER_LINE;
