@@ -93,7 +93,7 @@ impl Toxic {
     pub fn context_to_str(&self, pc_start: u32, pc_end: u32) -> String {
         let mut result: String = String::from("\tAddr\t\tInst");
         for pc in pc_start..pc_end{
-            let pc_mark = if pc == self.pc {"*"} else {""};
+            let pc_mark = if pc == self.pc {">>>"} else {""};
             result = format!("{}\n{}\t{:#06x}\t\t{}", result, pc_mark, pc, self.imem.decode(pc).to_str());
         }
         result
@@ -151,10 +151,11 @@ impl Toxic {
             ToxicInst::OFF => {
                 let offset = Toxic::i4_to_i8(self.pop());
                 if offset.is_negative(){
-                    self.pt -= offset.wrapping_abs() as u32;
+                    self.pt += !(offset.wrapping_abs() as u32) + 1;
                 } else{
                     self.pt += offset as u32;
                 }
+                self.pt = self.pt << (32-self.bus_width) >> (32 - self.bus_width);
             },
             ToxicInst::PC => {
                 self.pt = self.pc;

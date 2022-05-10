@@ -20,7 +20,7 @@ fn main() {
                               Err(e) => {writeln!(io, "Error: {}", e); ()}
                           }
                           Ok(())
-    });
+                      });
 
 
     shell.new_command("step", "Execute by One step", 0,
