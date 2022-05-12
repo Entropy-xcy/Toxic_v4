@@ -1,11 +1,11 @@
-pub mod toxic_imem;
 pub mod toxic_dmem;
+pub mod toxic_imem;
+pub mod toxic_translate;
 
-use std::fmt::{Debug};
-use toxic_imem::*;
-use toxic_imem::toxic_inst::*;
+use std::fmt::Debug;
 use toxic_dmem::*;
-
+use toxic_imem::toxic_inst::*;
+use toxic_imem::*;
 
 #[derive(Debug)]
 pub struct Toxic {
@@ -48,12 +48,15 @@ impl Toxic {
 
     pub fn pop(&mut self) -> u8 {
         let out = self.dmem.read(self.sp + 1);
-        if self.sp == (self.address_space() - 1) {} else { self.sp += 1 }
+        if self.sp == (self.address_space() - 1) {
+        } else {
+            self.sp += 1
+        }
         // println!("Poping {}", out);
         Toxic::u8_to_u4(out)
     }
 
-    pub fn i4_to_i8(i4: u8) -> i8{
+    pub fn i4_to_i8(i4: u8) -> i8 {
         let i4 = Toxic::u8_to_u4(i4);
         if (i4 >> 3) == 0 {
             // Positive Offset
@@ -80,11 +83,22 @@ impl Toxic {
         // println!("{}   {}", (self.address_space() - 1), self.sp);
         for i in self.sp + 1..=(self.address_space() - 3) {
             // println!("{} {}", i, self.sp);
-            let tos_mark = if i-1 == self.sp {"*"} else {
-                if i-2 == self.sp {"-"} else {""}
+            let tos_mark = if i - 1 == self.sp {
+                "*"
+            } else {
+                if i - 2 == self.sp {
+                    "-"
+                } else {
+                    ""
+                }
             };
-            ret = format!("{}\n{}\t{}\t{:04b}", ret, tos_mark,
-                          self.dmem.read(i), self.dmem.read(i))
+            ret = format!(
+                "{}\n{}\t{}\t{:04b}",
+                ret,
+                tos_mark,
+                self.dmem.read(i),
+                self.dmem.read(i)
+            )
         }
         ret = format!("{}\n------------", ret);
         ret
@@ -92,15 +106,24 @@ impl Toxic {
 
     pub fn context_to_str(&self, pc_start: u32, pc_end: u32) -> String {
         let mut result: String = String::from("\tAddr\t\tInst");
-        for pc in pc_start..pc_end{
-            let pc_mark = if pc == self.pc {">>>"} else {""};
-            result = format!("{}\n{}\t{:#06x}\t\t{}", result, pc_mark, pc, self.imem.decode(pc).to_str());
+        for pc in pc_start..pc_end {
+            let pc_mark = if pc == self.pc { ">>>" } else { "" };
+            result = format!(
+                "{}\n{}\t{:#06x}\t\t{}",
+                result,
+                pc_mark,
+                pc,
+                self.imem.decode(pc).to_str()
+            );
         }
         result
     }
 
-    pub fn reg_to_str(&self) -> String{
-        String::from(format!("PC:\t0x{:04x}\nPT:\t0x{:04x}\nSP:\t0x{:04x}", self.pc, self.pt, self.sp))
+    pub fn reg_to_str(&self) -> String {
+        String::from(format!(
+            "PC:\t0x{:04x}\nPT:\t0x{:04x}\nSP:\t0x{:04x}",
+            self.pc, self.pt, self.sp
+        ))
     }
 
     pub fn step(&mut self) {
@@ -118,8 +141,9 @@ impl Toxic {
             ToxicInst::BR => {
                 if (self.tos() << 7 >> 7) == 1 {
                     self.pc = self.pt
-                } else {}
-            },
+                } else {
+                }
+            }
             ToxicInst::NOT => {
                 let tos = self.pop();
                 self.push(Toxic::u8_to_u4(!tos));
@@ -129,7 +153,7 @@ impl Toxic {
             ToxicInst::GET => {
                 let x = self.dmem.read(self.pt);
                 self.push(x);
-            },
+            }
             ToxicInst::CMP => {
                 let a = self.tos();
                 let b = self.ntos();
@@ -138,7 +162,7 @@ impl Toxic {
                 let eq = (a == b) as u8;
                 let lt = (a < b) as u8;
                 println!("{} {} {} {} {}", a, b, lt, gt, eq);
-                let y: u8 = (self.carry * 8) + lt * 4 + gt *2 + eq;
+                let y: u8 = (self.carry * 8) + lt * 4 + gt * 2 + eq;
                 assert!(y < 16);
                 self.push(Toxic::u8_to_u4(y));
             }
@@ -147,22 +171,22 @@ impl Toxic {
                 self.pt = (self.pt << 4) % self.address_space();
                 // Second Step: Add PT with popped value
                 self.pt += self.pop() as u32;
-            },
+            }
             ToxicInst::OFF => {
                 let offset = Toxic::i4_to_i8(self.pop());
-                if offset.is_negative(){
+                if offset.is_negative() {
                     self.pt += !(offset.wrapping_abs() as u32) + 1;
-                } else{
+                } else {
                     self.pt += offset as u32;
                 }
-                self.pt = self.pt << (32-self.bus_width) >> (32 - self.bus_width);
-            },
+                self.pt = self.pt << (32 - self.bus_width) >> (32 - self.bus_width);
+            }
             ToxicInst::PC => {
                 self.pt = self.pc;
-            },
+            }
             ToxicInst::SP => {
                 self.pt = self.sp + 1;
-            },
+            }
             ToxicInst::ADD => {
                 let a = self.pop();
                 let b = self.pop();
@@ -181,7 +205,7 @@ impl Toxic {
             ToxicInst::PUT => {
                 let x = self.pop();
                 self.dmem.write(self.pt, x)
-            },
+            }
             ToxicInst::OR => {
                 let a = self.pop();
                 let b = self.pop();
@@ -193,7 +217,7 @@ impl Toxic {
         self.pc += 1;
     }
 
-    pub fn step_inst_str(&mut self, inst_str: String) -> Result<(), String>{
+    pub fn step_inst_str(&mut self, inst_str: String) -> Result<(), String> {
         let inst_bin = ToxicInst::from_str(inst_str);
         match inst_bin {
             Ok(ib) => {
@@ -201,29 +225,46 @@ impl Toxic {
                 self.step();
                 Ok(())
             }
-            Err(e) => Err(e)
+            Err(e) => Err(e),
         }
     }
 
-    pub fn mem_to_str(&self, begin_addr: u32, end_addr:u32) -> String {
+    pub fn mem_to_str(&self, begin_addr: u32, end_addr: u32) -> String {
         const ELEM_PER_LINE: u32 = 8;
         let mut ret = "Addr\t|\t".to_string();
 
-        for i in 0..ELEM_PER_LINE{
+        for i in 0..ELEM_PER_LINE {
             ret = format!("{}+{}\t", ret, i);
         }
 
         let begin_addr = (begin_addr / ELEM_PER_LINE) * ELEM_PER_LINE;
-        let end_addr = if end_addr % ELEM_PER_LINE == 0 {end_addr} else
-            {(end_addr / ELEM_PER_LINE + 1) * ELEM_PER_LINE};
+        let end_addr = if end_addr % ELEM_PER_LINE == 0 {
+            end_addr
+        } else {
+            (end_addr / ELEM_PER_LINE + 1) * ELEM_PER_LINE
+        };
 
-        for addr in begin_addr..end_addr{
-            let mark = if addr == self.pt {"*".to_string()} else {
-                if addr == self.sp {"^".to_string()}
-                else {"".to_string()}
+        for addr in begin_addr..end_addr {
+            let mark = if addr == self.pt {
+                "*".to_string()
+            } else {
+                if addr == self.sp {
+                    "^".to_string()
+                } else {
+                    "".to_string()
+                }
             };
-            ret = if addr % ELEM_PER_LINE == 0 {format!("{}\n{:#06x}\t|\t{:04b}{}", ret, addr, self.dmem.read(addr), mark)}
-            else {format!("{}\t{:04b}{}", ret, self.dmem.read(addr), mark)}
+            ret = if addr % ELEM_PER_LINE == 0 {
+                format!(
+                    "{}\n{:#06x}\t|\t{:04b}{}",
+                    ret,
+                    addr,
+                    self.dmem.read(addr),
+                    mark
+                )
+            } else {
+                format!("{}\t{:04b}{}", ret, self.dmem.read(addr), mark)
+            }
         }
         ret
     }
